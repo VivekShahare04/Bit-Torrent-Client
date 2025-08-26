@@ -38,5 +38,40 @@ The client will handle `.torrent` file parsing, peer communication, piece downlo
 
 ---
 
-## 📖 Status
-Currently working on **Week 1: Torrent file parser**.
+
+## 📖 `.torrent` File Keys Explained
+
+A `.torrent` file is a bencoded dictionary that contains metadata about the files to be shared.  
+Here’s what the main keys mean:
+
+- **announce** → URL of the tracker server that coordinates peers.  
+- **announce-list** *(optional)* → List of backup tracker URLs.  
+- **info** → Dictionary containing file information:  
+  - **piece length** → Size (in bytes) of each piece (e.g., 16384).  
+  - **pieces** → Concatenated SHA-1 hashes of all pieces (each 20 bytes).  
+  - **name** → Suggested name for the file or directory.  
+  - **length** → File size in bytes (for single-file torrents).  
+  - **files** → List of dictionaries for multi-file torrents:  
+    - **length** → Size of the file.  
+    - **path** → Path segments for the file location.  
+- **creation date** *(optional)* → Unix timestamp when the torrent was created.  
+- **comment** *(optional)* → User or software-provided note.  
+- **created by** *(optional)* → Software used to create the torrent.  
+
+---
+
+## 🛠 Sample Output from Parser
+
+### Single-file torrent:
+```python
+{
+  'announce': 'http://tracker.opentrackr.org:1337/announce',
+  'creation date': 1664526000,
+  'created by': 'qBittorrent v4.3.9',
+  'info': {
+    'piece length': 16384,
+    'pieces': '<binary hash data>',
+    'name': 'example.txt',
+    'length': 524288
+  }
+}
