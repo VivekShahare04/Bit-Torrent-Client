@@ -76,14 +76,97 @@ Here’s what the main keys mean:
   }
 }
 
-## 🔑 Why `info_hash` is Important
 
-The **`info_hash`** is a 20-byte SHA-1 hash of the `info` dictionary from the `.torrent` file.  
+---
 
-- Peers do **not** trust the filename, size, or tracker URL.  
-- Instead, they rely on the **`info_hash`**, which uniquely identifies the torrent data.  
-- If two `.torrent` files point to the same underlying data, they will have the **same `info_hash`**, ensuring compatibility across different trackers.  
+Week 1 – Sprint 1: Torrent Parsing
+----------------------------------
++---------------------+
+| 1️⃣ User provides    |
+|    .torrent file     |
++----------+----------+
+           |
+           v
++---------------------+
+| 2️⃣ torrent_parser.py|
+| - Reads .torrent file|
+| - Decodes Bencode    |
+| - Extracts metadata: |
+|   * announce (tracker)|
+|   * info dictionary  |
+|   * piece length     |
+|   * file size        |
+| - Computes info_hash |
++---------------------+
 
-📌 **Interview note:**  
-“Peers don’t trust the file name or size, they trust the info_hash. It uniquely identifies the torrent. If two .torrent files point to the same data, they’ll share the same info_hash.”
+Week 2 – Sprint 2: Tracker Communication
+-----------------------------------------
+           |
+           v
++---------------------+
+| 3️⃣ tracker_client.py|
+| - Generates peer_id  |
+| - Builds tracker request URL |
+| - Sends HTTP GET     |
+| - Decodes tracker response  |
++----------+----------+
+           |
+           v
++---------------------+
+| 4️⃣ Parse peers      |
+| - Compact format → (IP, port) |
+| - Save list of peers for connection |
++---------------------+
+
+Week 3 – Sprint 3: Peer-to-Peer Connection
+------------------------------------------
+           |
+           v
++---------------------+
+| 5️⃣ peer_client.py   |
+| - Connects to peer via TCP |
+| - Sends handshake (info_hash + peer_id) |
+| - Receives handshake confirmation |
++----------+----------+
+           |
+           v
++---------------------+
+| 6️⃣ Maintain peer state |
+| - Mark peers active/inactive |
+| - Keep track of pieces each peer has |
++---------------------+
+
+Week 4 – Sprint 4: Piece Download & File Reconstruction
+--------------------------------------------------------
+           |
+           v
++---------------------+
+| 7️⃣ Piece request      |
+| - Request missing pieces from peers |
+| - Use “have” messages to track availability |
++----------+----------+
+           |
+           v
++---------------------+
+| 8️⃣ Piece verification |
+| - Verify SHA1 hash of downloaded piece |
+| - Accept or discard piece |
++----------+----------+
+           |
+           v
++---------------------+
+| 9️⃣ File reconstruction |
+| - Assemble all pieces in correct order |
+| - Save final file(s) to disk |
++---------------------+
+
+Optional Enhancements (any week)
+--------------------------------
+- Multi-threaded downloads (concurrent piece requests)  
+- Magnet link support (skip torrent file)  
+- DHT / Peer exchange (find peers without tracker)  
+- Web interface / GUI  
+- Logging & analytics  
+
+
 
