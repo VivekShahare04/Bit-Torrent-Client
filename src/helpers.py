@@ -20,3 +20,15 @@ def parse_compact_peers(peers_binary):
 def generate_peer_id():
     # Example peer_id format: -PC0001-<random 12 chars>
     return "-PC0001-" + ''.join(random.choices(string.ascii_letters + string.digits, k=12))
+
+
+#updation after handshake has been done
+def update_peer_status(peer_obj, success, peer_id=None):
+    if success:
+        peer_obj.connected = True
+        if peer_id:
+            peer_obj.peer_id = peer_id
+    else:
+        peer_obj.failed_attempts += 1
+        if peer_obj.failed_attempts >= 3:
+            peer_obj.connected = False  # drop peer after repeated failures
