@@ -76,4 +76,14 @@ Here’s what the main keys mean:
   }
 }
 
-![alt text](image.png)
+## 🔑 Why `info_hash` is Important
+
+The **`info_hash`** is a 20-byte SHA-1 hash of the `info` dictionary from the `.torrent` file.  
+
+- Peers do **not** trust the filename, size, or tracker URL.  
+- Instead, they rely on the **`info_hash`**, which uniquely identifies the torrent data.  
+- If two `.torrent` files point to the same underlying data, they will have the **same `info_hash`**, ensuring compatibility across different trackers.  
+
+📌 **Interview note:**  
+“Peers don’t trust the file name or size, they trust the info_hash. It uniquely identifies the torrent. If two .torrent files point to the same data, they’ll share the same info_hash.”
+
