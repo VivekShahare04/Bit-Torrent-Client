@@ -3,6 +3,7 @@ import hashlib
 import sys
 
 from helpers import update_peer_status, generate_peer_id
+from peer_protocol import build_interest,parse_message,send_interested
 
 #-------peer clas -------------
 class Peer:
@@ -27,7 +28,7 @@ def handshake(peer_obj, info_hash, peer_id):
     """Perform BitTorrent handshake with a peer"""
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.settimeout(5)  # 5 seconds timeout
+        s.settimeout(3)  # 5 seconds timeout
         s.connect((peer_obj.ip, peer_obj.port))
 
         # Build handshake message
@@ -47,23 +48,51 @@ def handshake(peer_obj, info_hash, peer_id):
         if len(response) < 68:
             print(f"Handshake failed with {peer_obj.ip}:{peer_obj.port}")
             update_peer_status(peer_obj, False)
-            return False
+            s.close()
+            return None
         elif response[28:48] == info_hash:
+            peer_id_recv = response[48:68].decode(errors='ignore')
             print(f"✅ Handshake successful with {peer_obj.ip}:{peer_obj.port}")
+            print(f"🤝 Peer ID: {peer_id_recv}")
             update_peer_status(peer_obj, True, response[48:68].decode(errors='ignore'))
+            send_interested(s)
+
+            while True:
+                data = s.recv(4096)
+                if not data:
+                    break
+                msg_id, payload = parse_message(data)
+                print(f"Received message ID: {msg_id}, Payload Length: {len(payload) if payload else 0}")
             return True
+            
         else:
             print(f"Info hash mismatch with {peer_obj.ip}:{peer_obj.port}")
             update_peer_status(peer_obj, False)
-            return False
+            return None
 
     except Exception as e:
         print(f"Connection failed with {peer_obj.ip}:{peer_obj.port} - {e}")
         update_peer_status(peer_obj, False)
-        return False
-    finally:
-        s.close()
+        return None
 
+def after_handshake(sock):
+    """ mesage after handshake has been done """
+
+    try:
+        msg = build_interest()
+        sock.send(msg)
+
+        response = sock.recv(4096)
+        if response:
+            msg_id, payload = parse_message(response)
+            print(f"Received message ID: {msg_id}, Payload Length: {len(payload) if payload else 0}")
+        else:
+            print("No response received after sending interest message.")
+    except Exception as e:
+        print(f"Error during post-handshake communication: {e}")
+    finally:
+        sock.close()
+    
 # --- Main testing ---
 if __name__ == "__main__":
     if len(sys.argv) != 4:

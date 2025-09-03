@@ -21,6 +21,7 @@ def contact_tracker(torrent_file):
 
     # URL-encode info_hash
     info_hash_encoded = urllib.parse.quote_from_bytes(info_hash)
+    print(f"Info Hash: {info_hash.hex()}")
 
     # Peer ID
     peer_id = generate_peer_id()
@@ -54,6 +55,7 @@ def contact_tracker(torrent_file):
     for ip, port in peers_list:
         print(f"{ip}:{port}")
 
+    return peers_list, info_hash, peer_id
 
 
 if __name__ == "__main__":
